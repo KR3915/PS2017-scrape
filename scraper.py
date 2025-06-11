@@ -19,8 +19,8 @@ import sys
 
 patterns = {
     "obce_jmeno": r'<td class="overflow_name".*?>(.*?)</td>',
-    "obec_kod": r'<a href="ps311\?.*?xobec=(\d+?)&amp;.*?">\d+?</a>'
-    }
+    "obec_kod": r'<a href="ps311\?.*?xobec=(\d+?)&amp;.*?">\d+?</a>',
+}
 
 class Obce:
     def __init__(self, name, kod, url):
@@ -42,7 +42,7 @@ class VysledkyStrany:
         self.strana = strana
         self.hlasy = hlasy
 
-def ziskej_obecna_data(url):
+def ziskej_zakladni_data_obci(url):
     try:
         r = requests.get(url)
         r.raise_for_status()  # Zkontroluje HTTP chyby
@@ -61,8 +61,8 @@ def ziskej_obecna_data(url):
         print("Chyba: Počet nalezených jmen a kódů obcí se neshoduje.")
         return []
 
-def ziskej_info(url_uzemniho_celku):
-    obce_data_list = ziskej_obecna_data(url_uzemniho_celku)
+def ziskej_informace_o_obcich(url_uzemniho_celku):
+    obce_data_list = ziskej_zakladni_data_obci(url_uzemniho_celku)
     list_of_obec_objects = [] 
 
     # Extrahovat xkraj a xnumnuts (xvyber) z hlavní URL pro detailní URL obcí
@@ -87,7 +87,7 @@ def ziskej_info(url_uzemniho_celku):
         print("Nelze vytvořit objekty Obce, protože ziskej_obecna_data vrátila chybu nebo žádná data.")
         return []
 
-def parse_summary_stats(html):
+def parsuj_souhrnne_statistiky(html):
     """
     Extrahuje souhrnné statistiky (voliči, obálky, platné hlasy) z HTML obce.
     Vrací slovník se statistikami.
@@ -125,11 +125,7 @@ def parse_summary_stats(html):
             
     return stats
 
-def parse_vysledky_stran(html, obec_obj):
-    """
-    Najde všechny strany a jejich hlasy v HTML jedné obce.
-    Vrací seznam objektů vysledkystrany.
-    """
+def parsuj_vysledky_politickych_stran(html, obec_obj):
     pattern = re.compile(
         r'<td class="cislo" headers="t1sa1 t1sb1">\s*(\d+)\s*</td>\s*' 
         r'<td class="overflow_name" headers="t1sa1 t1sb2">([^<]*)</td>\s*' 
@@ -150,11 +146,7 @@ def parse_vysledky_stran(html, obec_obj):
         vysledky.append(vysledek)
     return vysledky
 
-def process_all_obec_urls(obce_objects):
-    """
-    Projde všechny objekty Obce, stáhne HTML jejich stránky,
-    vytáhne výsledky stran a uloží je do objektů.
-    """
+def zpracuj_vsechny_url_obci(obce_objects):
     vsechny_vysledky = []
     # first_obec_processed = False 
     for obec_index, obec in enumerate(obce_objects):
@@ -168,7 +160,7 @@ def process_all_obec_urls(obce_objects):
             
         html = response.text
 
-        summary_data = parse_summary_stats(html)
+        summary_data = parsuj_souhrnne_statistiky(html)
         obec.registered = summary_data.get('registered')
         obec.envelopes = summary_data.get('envelopes')
         obec.valid = summary_data.get('valid')
@@ -177,19 +169,13 @@ def process_all_obec_urls(obce_objects):
         #     print(f"\n--- Prvních 10000 znaků HTML pro obec {obec.name}: ---\n")
         #     print(html[:10000])
         #     first_obec_processed = True 
-        vysledky_stran_pro_obec = parse_vysledky_stran(html, obec)
+        vysledky_stran_pro_obec = parsuj_vysledky_politickych_stran(html, obec)
         if not vysledky_stran_pro_obec and html: # Pokud nebyly nalezeny strany, ale HTML existuje, může to být problém
              print(f"Varování: Pro obec {obec.name} nebyly nalezeny žádné výsledky stran, ačkoliv HTML bylo staženo.")
         vsechny_vysledky.extend(vysledky_stran_pro_obec)
-        # print("\n---\n") # Může být příliš verbózní
     return vsechny_vysledky
 
-def save_to_csv(data, filename):
-    """
-    Uloží data do CSV souboru v širokém formátu.
-    Každá obec bude mít jeden řádek a každá strana svůj sloupec.
-    'data' je seznam objektů VysledkyStrany.
-    """
+def uloz_do_csv(data, filename):
     if not data:
         print("Žádná data k uložení.")
         return
@@ -220,8 +206,8 @@ def save_to_csv(data, filename):
             
             for (kod, nazev), combined_data in obce_data_restructured.items():
                 row = [kod, nazev] + \
-                      [combined_data.get(key, 0) for key in summary_stat_keys] + \
-                      [combined_data['party_votes'].get(party_name, 0) for party_name in party_names]
+                    [combined_data.get(key, 0) for key in summary_stat_keys] + \
+                    [combined_data['party_votes'].get(party_name, 0) for party_name in party_names]
                 writer.writerow(row)
                 
         print(f"Data byla úspěšně uložena do {filename}")
@@ -241,12 +227,12 @@ def main():
     print(f"Spouštím scrapování pro URL: {url_argument}")
     print(f"Výstupní soubor: {csv_filename_argument}")
 
-    all_obce_objects = ziskej_info(url_argument)
+    all_obce_objects = ziskej_informace_o_obcich(url_argument)
     
     if all_obce_objects:
-        final_results = process_all_obec_urls(all_obce_objects)
+        final_results = zpracuj_vsechny_url_obci(all_obce_objects)
         if final_results:
-            save_to_csv(final_results, csv_filename_argument)
+            uloz_do_csv(final_results, csv_filename_argument)
         else:
             print("Nebyla získána žádná data o výsledcích stran k uložení.")
     else:
