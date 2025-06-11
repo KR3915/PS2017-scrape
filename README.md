@@ -1,6 +1,6 @@
 # Scraper volebních výsledků z Volby.cz
 
-Tento Python skript (`scraper.py`) slouží k automatizovanému stahování a zpracování výsledků parlamentních voleb v České republice z webových stránek `www.volby.cz`. Umožňuje uživateli specifikovat konkrétní územní celek (např. okres) prostřednictvím URL adresy a název výstupního souboru, do kterého se uloží sesbíraná data ve formátu CSV.
+Tento Python skript (`scraper.py`) slouží k automatizovanému stahování a zpracování výsledků parlamentních voleb v České republice z webových stránek `www.volby.cz`. Umožňuje uživateli specifikovat konkrétní územní celek prostřednictvím URL adresy a název výstupního souboru, do kterého se uloží sesbíraná data ve formátu CSV.
 
 ## Popis
 
