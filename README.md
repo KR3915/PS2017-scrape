@@ -8,7 +8,7 @@ Skript prochází zadanou URL, identifikuje jednotlivé obce v daném územním 
 *   Souhrnné statistiky účasti (počet voličů v seznamu, vydané obálky, platné hlasy).
 *   Počty hlasů pro jednotlivé politické strany.
 
-Všechna data jsou následně agregována a uložena do CSV souboru v přehledném "širokém" formátu.
+Všechna data jsou následně agregována a uložena do CSV souboru v přehledném formátu.
 
 ## Funkce
 
