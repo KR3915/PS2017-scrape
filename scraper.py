@@ -2,6 +2,11 @@ import requests
 import re
 import csv
 import sys
+"""
+scraper.py: PS-2017 scraper
+author: Ondřej Brdek
+email: ondrej.brdek@gmail.com discord: #ulaviceditestalozplnahrdlakricel
+"""
 ################################
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 ###################################
